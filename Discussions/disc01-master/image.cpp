@@ -17,16 +17,40 @@ Image::Image(const unsigned& w, const unsigned& h)
 
 void Image::read(std::string filename) {
 	// FIXME
+    data.clear();
+    lodepng::decode(data, width, height, filename);
 }
 
 void Image::write(std::string filename) const {
 	// FIXME
+    lodepng::encode(filename, data, width, height);
 }
 
 uint8_t* Image::at(int x, int y) {
 	// FIXME
+    return &data[0] + 4*(y*width + x);
 }
 
 Image Image::operator*(const Filter& filter) {
 	// FIXME
+    Image new_image(width, height);
+        for (int x = 0; x < width; ++x) {
+            float temp[] = {0,0,0,0};
+            for (int j = 0; j < filter.height; ++j) {
+                for (int i = 0; i < filter.width; ++i) {
+                    int xi = x + i - filter.width/2, yi = y + j - filter.height/2;
+                    if (xi < 0 || xi >= width || yi < 0 || yi >= height)
+                        continue;
+                    else {
+                        for (int k = 0; k < 4; ++k)
+                            temp[k] += at(xi,yi)[k] * filter.at(i,j);
+                    }
+                }
+            }
+            for (int k = 0; k < 4; ++k) {
+                new_image.at(x,y)[k] = temp[k];
+            }
+        }
+    }
+    return new_image;
 }
